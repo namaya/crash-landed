@@ -44,6 +44,8 @@ function preload() {
 }
 
 function create() {
+    game.input.keyboard.onDownCallback = null
+
     let bmd = game.add.bitmapData(CANVAS_WIDTH, CANVAS_HEIGHT);
     bmd.addToWorld();
 
