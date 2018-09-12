@@ -2,18 +2,45 @@
 // Game Assets
 var chief;
 var plufo;
-// var ball;
+var balls = [];
+var blasts = [];
+
 var cursors;
 
 // Game State
 var chiefIsFacingRight;
 var ballJustFinishedBlowingUp;
 var ballJustStartedBlowingUp;
+var intervalId;
+
+function dispatchBlast() {
+    var blast = game.add.sprite(chief.x, chief.y, 'blast');
+    blast.animations.add('dispatch', [0, 1, 2, 3, 4]);
+    blast.animations.play('dispatch', 12, false);
+    game.physics.enable(blast);
+    blast.body.velocity.setTo(0, -400);
+    blast.body.immovable = true;
+    blasts.push(blast);
+}
+
+function blowUpNewBall() {
+    ballJustStartedBlowingUp = true;
+    var ball = game.add.sprite(plufo.x, plufo.y + 10, 'ball');
+    ball.animations.add('blow-up');
+    ball.animations.play('blow-up', 4, false);
+    game.physics.enable(ball);
+    ball.body.velocity.setTo(200, 200);
+    ball.body.collideWorldBounds = true;
+    ball.body.bounce.set(1);
+    ball.body.immovable = true;
+    balls.push(ball);
+}
 
 function preload() {
-    game.load.spritesheet('chief', 'assets/chief.png', 128, 128);
+    game.load.spritesheet('chief', 'assets/chief.png', 66, 71);
     game.load.image('plufo', 'assets/plufo.png');
-    game.load.spritesheet('ball', 'assets/ball.png', 128, 128);
+    game.load.spritesheet('ball', 'assets/ball.png', 48, 48);
+    game.load.spritesheet('blast', 'assets/blast.png', 69, 92);
 }
 
 function create() {
@@ -52,7 +79,6 @@ function create() {
     chief.scale.setTo(0.75);
     plufo = game.add.sprite(CANVAS_WIDTH / 2, 50, 'plufo');
     plufo.anchor.set(0.5);
-    // ball = game.add.sprite(50, 50, 'ball');
     
     game.physics.enable(chief, Phaser.Physics.ARCADE);
     game.physics.enable(plufo, Phaser.Physics.ARCADE);
@@ -72,6 +98,7 @@ function create() {
     // ball.animations.add('blow-up');
 
     cursors = game.input.keyboard.createCursorKeys();
+    cursors.up.onDown.add(dispatchBlast);
 
     // Initial Game State
     chiefIsFacingRight = true;
@@ -103,13 +130,39 @@ function create() {
         }
     }
 
-    // setInterval(blowUpNewBall, 3000);
+    intervalId = setInterval(blowUpNewBall, 5000);
 }
 
 var plufoVelocityX;
 
+function gameOverHandler() {
+    for (var i = 0; i < balls.length; i++) {
+        balls[i].body.velocity.setTo(0,0);
+    }
+    clearInterval(intervalId);
+    game.state.start("game-over");
+}
+
 function update() {
     chief.update();
+
+    var collisionDetected = false;
+
+    for (var i = 0; i < balls.length; i++) {
+        game.physics.arcade.collide(chief, balls[i], gameOverHandler);
+        for (var j = 0; j < blasts.length; j++) {
+            game.physics.arcade.collide(balls[i], blasts[j], function() {
+                balls[i].destroy();
+                balls.splice(i, 1);
+                i--;
+                collisionDetected = true;
+            });
+            if (collisionDetected) {
+                collisionDetected = false;
+                break;
+            }
+        }
+    }
 
     // let blowUpAnimation = ball.animations.getAnimation('blow-up');
 
