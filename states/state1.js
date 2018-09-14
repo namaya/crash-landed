@@ -10,13 +10,11 @@ var cursors;
 
 // Game State
 var score;
-
 var chiefIsFacingRight;
 var ballJustFinishedBlowingUp;
 var ballJustStartedBlowingUp;
 var intervalId;
 var plufoVelocityX;
-
 
 function dispatchBlast() {
     var blast = game.add.sprite(chief.x, chief.y - 50, 'blast');
@@ -40,7 +38,11 @@ function blowUpNewBall() {
     ball.body.bounce.set(1);
     ball.body.immovable = true;
     ball.events.onAnimationComplete.add(function() {
-        ball.body.velocity.setTo(200, 200);
+        let xVelocity = 150 + Math.random()*200;
+        if (Math.random() < 0.5) {
+            xVelocity = -xVelocity;
+        }
+        ball.body.velocity.setTo(xVelocity, 200);
     });
     balls.push(ball);
 }
@@ -144,8 +146,7 @@ function create() {
         }
     }
 
-    intervalId = setInterval(blowUpNewBall, 5000);
-
+    intervalId = setInterval(blowUpNewBall, 3000);
 }
 
 function gameOverHandler() {
@@ -169,6 +170,7 @@ function update() {
                 balls.splice(i, 1);
                 i--;
                 collisionDetected = true;
+                score += 1000;
             });
             if (collisionDetected) {
                 collisionDetected = false;
