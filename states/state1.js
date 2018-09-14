@@ -5,21 +5,28 @@ var plufo;
 var balls = [];
 var blasts = [];
 
+// Keyboard Assets
 var cursors;
 
 // Game State
+var score;
+
 var chiefIsFacingRight;
 var ballJustFinishedBlowingUp;
 var ballJustStartedBlowingUp;
 var intervalId;
+var plufoVelocityX;
+
 
 function dispatchBlast() {
-    var blast = game.add.sprite(chief.x, chief.y, 'blast');
+    var blast = game.add.sprite(chief.x, chief.y - 50, 'blast');
     blast.animations.add('dispatch', [0, 1, 2, 3, 4]);
     blast.animations.play('dispatch', 12, false);
     game.physics.enable(blast);
-    blast.body.velocity.setTo(0, -400);
     blast.body.immovable = true;
+    blast.events.onAnimationComplete.add(function() {
+        blast.body.velocity.setTo(0, -300);
+    });
     blasts.push(blast);
 }
 
@@ -29,10 +36,12 @@ function blowUpNewBall() {
     ball.animations.add('blow-up');
     ball.animations.play('blow-up', 4, false);
     game.physics.enable(ball);
-    ball.body.velocity.setTo(200, 200);
     ball.body.collideWorldBounds = true;
     ball.body.bounce.set(1);
     ball.body.immovable = true;
+    ball.events.onAnimationComplete.add(function() {
+        ball.body.velocity.setTo(200, 200);
+    });
     balls.push(ball);
 }
 
@@ -46,6 +55,13 @@ function preload() {
 function create() {
     game.input.keyboard.onDownCallback = null
 
+    // Initial Game State
+    score = 0;
+    chiefIsFacingRight = true;
+    ballJustFinishedBlowingUp = false;
+    ballJustStartedBlowingUp = true;
+
+    // Draw background
     let bmd = game.add.bitmapData(CANVAS_WIDTH, CANVAS_HEIGHT);
     bmd.addToWorld();
 
@@ -58,9 +74,6 @@ function create() {
         y += deltaY;
     }
 
-    game.physics.startSystem(Phaser.Physics.ARCADE);
-
-    // Draw background
     var graphics = game.add.graphics(0, 0);
     graphics.beginFill(0x4f4638);
     graphics.lineStyle(2, 0x000000, 0.25);
@@ -77,10 +90,14 @@ function create() {
     graphics.beginFill(0x429926);
     graphics.drawRect(0, 2 * 230, 2 * 256, 40);
 
+    // In-game sprites
     chief = game.add.sprite(10, 2 * 200, 'chief');
     chief.scale.setTo(0.75);
     plufo = game.add.sprite(CANVAS_WIDTH / 2, 50, 'plufo');
     plufo.anchor.set(0.5);
+    
+    // Add arcade physics
+    game.physics.startSystem(Phaser.Physics.ARCADE);
     
     game.physics.enable(chief, Phaser.Physics.ARCADE);
     game.physics.enable(plufo, Phaser.Physics.ARCADE);
@@ -97,25 +114,20 @@ function create() {
     chief.animations.add("stand-right", [0], 1)
     chief.animations.add("stand-left", [5], 1);
 
-    // ball.animations.add('blow-up');
-
     cursors = game.input.keyboard.createCursorKeys();
     cursors.up.onDown.add(dispatchBlast);
 
-    // Initial Game State
-    chiefIsFacingRight = true;
-    ballJustFinishedBlowingUp = false;
-    ballJustStartedBlowingUp = true;
+    scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
     // Update function
     chief.update = function() {
         if (cursors.right.isDown) {
             chief.animations.play('walk-right', 12, true);
-            chief.x += 4;
+            chief.x += 3;
             chiefIsFacingRight = true;
         } else if (cursors.left.isDown) {
             chief.animations.play('walk-left', 12, true);
-            chief.x -= 4;
+            chief.x -= 3;
             chiefIsFacingRight = false;
         } else if (cursors.up.isDown) {
             if (chiefIsFacingRight) {
@@ -133,9 +145,8 @@ function create() {
     }
 
     intervalId = setInterval(blowUpNewBall, 5000);
-}
 
-var plufoVelocityX;
+}
 
 function gameOverHandler() {
     for (var i = 0; i < balls.length; i++) {
@@ -165,6 +176,9 @@ function update() {
             }
         }
     }
+
+    score += 1;
+    scoreText.text = "Score: " + score;
 
     // let blowUpAnimation = ball.animations.getAnimation('blow-up');
 
