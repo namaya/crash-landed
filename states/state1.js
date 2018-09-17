@@ -146,7 +146,7 @@ function create() {
         }
     }
 
-    intervalId = setInterval(blowUpNewBall, 3000);
+    intervalId = setInterval(blowUpNewBall, 1500);
 }
 
 function gameOverHandler() {
@@ -170,7 +170,7 @@ function update() {
                 balls.splice(i, 1);
                 i--;
                 collisionDetected = true;
-                score += 1000;
+                score += 10000;
             });
             if (collisionDetected) {
                 collisionDetected = false;
@@ -181,26 +181,6 @@ function update() {
 
     score += 1;
     scoreText.text = "Score: " + score;
-
-    // let blowUpAnimation = ball.animations.getAnimation('blow-up');
-
-    // if (blowUpAnimation.isPlaying) {
-    //     if (ballJustStartedBlowingUp) {
-    //         plufoVelocityX = plufo.body.velocity.x;
-    //         ballJustStartedBlowingUp = false;
-    //         console.log(plufoVelocityX);
-    //     }
-    //     plufo.body.velocity.setTo(0, 0);
-    //     ballJustFinishedBlowingUp = true;
-    // } else {
-    //     if (ballJustFinishedBlowingUp) {
-    //         console.log(plufoVelocityX);
-    //         plufo.body.velocity.setTo(plufoVelocityX, 0);
-    //         ballJustFinishedBlowingUp = false;
-    //         ballJustStartedBlowingUp = true;
-    //     }
-    // }
-
 }
 
 let state1 = {
